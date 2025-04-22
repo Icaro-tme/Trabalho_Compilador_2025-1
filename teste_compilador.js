@@ -4,138 +4,100 @@ const parser = require('./compiler.js');
 // Um exemplo de código-fonte C que você quer analisar
 const codigoFonte = `
 #include <stdio.h>
-#include <stdlib.h>
 
-// Definição de macro
-#define MAX 100
+#define SIZE 5 // define
 
-// Definição de um struct
-struct Data {
-    int id;
-    char name[50];
-};
-
-// Definição de um union
-union Value {
-    int i;
-    float f;
-};
-
-// Enumeração de tipos
-enum Color { RED, GREEN, BLUE };
-
-// Protótipo de função
-void printArray(int *arr, int size);
-
-int main() {
-    // Declaração e inicialização de variáveis de vários tipos
-    int array[MAX] = {1, 2, 3, 4, 5}; // array com 'define' para tamanho
-    int x = 10;
-    signed int w = -20;
-    unsigned int tt = 50;
-    long int rt = 100000;
-    short int si = 5;
-    float f = 3.14;
-    double d = 2.718;
-    char ch = 'A';
-    const int constant_var = 500;
-    volatile int volatile_var = 200;
-
-    // Ponteiro e alocação dinâmica
-    int *ptr = (int *)malloc(MAX * sizeof(int));
-    if (ptr == NULL) {
-        printf("Erro na alocação de memória\n");
-        return 1;
+{
+    int array[SIZE] = {1, 2, 3, 4, 5}; // array com 'define' para tamanho
+    int even_count = 0; // contador para números pares
+    int odd_count = 0; // contador para números ímpares
+    int sum = 0;
+    int i, j;
+    int flag = 0; // uma flag para verificar se entramos em certos blocos de código
+    float average; // float
+    char grade; // char
+	
+    {
+	int soma4= 10;
+        odd_count = soma4 * 10 + 34 + 45 - 78;
     }
 
-    // Inicialização de matriz
-    int matrix[3][3] = {
-        {1, 2, 3},
-        {4, 5, 6},
-        {7, 8, 9}
-    };
-
-    // Inicializando struct
-    struct Data data1 = {1, "John"};
-
-    // Inicializando
-    union Value val;
-    val.i = 10;
-
-    // Inicializando enum
-    enum Color color = RED;
-
-    // Uso de if-else
-    if (x > 0) {
-        printf("x é positivo.\n");
-    } else {
-        printf("x é negativo ou zero.\n");
+    {
+	int soma4= 20;
+	odd_count = soma4 * 10 * 34 + 45 - 478 * 3;
     }
 
-    // Uso de switch-case
-    switch (color) {
-        case RED:
-            printf("A cor é Vermelho.\n");
+    // for loop
+    for (i = 0; i < SIZE; i++) {
+        sum += array[i]; // atribuição
+
+        // if-else com &&, || e !
+        if (array[i] % 2 == 0 && !flag) { // usando && e !
+            even_count++; // Número par encontrado, incrementa contador
+            flag = 1; // indica que um número par foi encontrado
+	    int soma3= 10;
+        } else if (array[i] % 2 != 0 || flag) { // usando ||
+            odd_count++; // Número ímpar encontrado, incrementa contador
+            flag = 2; // indica que um número ímpar foi encontrado
+        }
+
+        // loop dentro de loop
+        for (j = 0; j < array[i]; j++) {
+            // Suponha que estamos fazendo alguma operação aqui, incrementa flag
+            flag++;
+        }
+
+	int flag2 = 10;
+	sum = flag2 + even_count + 3 * odd_count / 4.5 - odd_count  * 2;                   // erro pois 4.5 eh float e os demais int
+	sum = flag2 + even_count + 3 * odd_count / 45 - soma3;                            // erro escopo diferente
+	sum = flag2 + even_count + 23 + flag2 * 30 + 3 * odd_count / 45 - odd_count * 34; // OK tudo int
+    }
+
+    average = (float)sum / SIZE; // Calculando média como float
+
+    // switch-case com default e break
+    switch ((int)average / 10) {
+        case 10:
+        case 9:
+        case 8:
+            grade = 'A';
             break;
-        case GREEN:
-            printf("A cor é Verde.\n");
+        case 7:
+        case 6:
+            grade = 'B';
             break;
-        case BLUE:
-            printf("A cor é Azul.\n");
+        case 5:
+            grade = 'C';
             break;
         default:
-            printf("Cor desconhecida.\n");
+            grade = 'D';
     }
 
-    // Uso de for
-    for (int i = 0; i < 5; i++) {
-        printf("For loop - Iteração %d\n", i);
+    // while
+    while (sum > 0) {
+        sum--; // atribuição
+        flag = 3; // indica que estamos dentro do while
     }
 
-    // Uso de while
-    int count = 0;
-    while (count < 3) {
-        printf("While loop - Contagem: %d\n", count);
-        count++;
-    }
-
-    // Uso de do-while
-    count = 0;
+    // do-while
     do {
-        printf("Do-while loop - Contagem: %d\n", count);
-        count++;
-    } while (count < 3);
+        sum--; // este bloco sempre será executado pelo menos uma vez
+        flag = 4; // indica que estamos dentro do do-while
+    } while (sum > -5 * SIZE); // vamos parar quando sum for -5 * SIZE para sair do loop
 
-    // Uso de ponteiro em uma função
-    for (int i = 0; i < 10; i++) {
-        ptr[i] = i * 10;
+    // if-else
+    if (sum == -5 * SIZE) {
+        // A soma é -5 * SIZE
+        flag = 5; // indica uma condição específica alcançada
+    } else {
+        // A soma não é -5 * SIZE
+        flag = 6; // indica uma condição diferente alcançada
     }
-    printArray(ptr, 10);
 
-    // Registro de variável
-    register int fast_var = 30;
-    printf("Variável registrada: %d\n", fast_var);
-
-    // Exemplo de typedef
-    typedef unsigned long ULong;
-    ULong bigNum = 123456789;
-    printf("ULong: %lu\n", bigNum);
-
-    // Liberação de memória alocada
-    free(ptr);
-    printf("Memória desalocada com sucesso.\n");
-
-    return 0;
+    // As variáveis "flag", "even_count", "odd_count", "sum", "average", e "grade" podem ser observadas em um debugger
+    
 }
 
-// Função para imprimir um array usando ponteiro
-void printArray(int *arr, int size) {
-    printf("Array dinâmico: ");
-    for (int i = 0; i < size; i++) {
-        printf("%d ", arr[i]);
-    }
-    printf("\n");
-}
 
 `;
 

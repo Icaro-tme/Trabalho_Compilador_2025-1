@@ -178,7 +178,7 @@
 ","                                 {console.log('Token COMMA'); return ',';}
 ";"                                 {console.log('Token SEMICOLON'); return ';';}
 ":"                                 {console.log('Token COLON'); return ':';}
-"."                                 {console.log('Token DOT'); return '.';}
+"."                                 {console.log('Token DOT'); return 'DOT';}
 "("                                 {console.log('Token LPAREN'); return '(';}
 ")"                                 {console.log('Token RPAREN'); return ')';}
 "{"                                 {console.log('Token LBRACE'); return '{';}
@@ -340,6 +340,8 @@ statement
     { $$ = { node: $1.node }; }
     | enum_decl
     { $$ = { node: $1.node }; }
+    | typedef_stmt
+    { $$ = { node: $1.node }; }
     ;
 
 function_definition
@@ -438,6 +440,17 @@ argument_list
     | argument_list ',' expressao_aritmetica
     { $$ = { node: new Node('ARG_LIST', $1.node, $3.node), stringValue: $1.stringValue + ',' + $3.stringValue }; }
     ;
+
+typedef_stmt
+    : TYPEDEF tipo_var IDF ';'
+    {
+        // Apenas registra o nome do typedef para uso posterior
+        definirConstante($3, $2);  // Ex: typedef unsigned long ULong;
+        $$ = {
+            node: new Node('TYPEDEF', new Node($2), new Node($3))
+        };
+    }
+;
 
 /* Gramática do IF */
 if_stmt
@@ -612,6 +625,17 @@ valor_lit
             node: new Node('CHAR_LIT', new Node($1))
         };
     }
+    | IDF
+    {
+        // Trata IDF como valor de enum (como RED, GREEN, BLUE)
+        verificaVariavel($1);
+        $$ = {
+            type: 'ENUM_VALUE',
+            value: $1,
+            stringValue: $1,
+            node: new Node('ENUM_VALUE', new Node($1))
+        };
+    }
     ;
 
 /* Tipo da variável */
@@ -644,7 +668,30 @@ tipo_var
     {$$ = 'union ' + $2;}
     | ENUM IDF
     {$$ = 'enum ' + $2;}
+    | UNSIGNED LONG
+    { $$ = 'unsigned long'; }
+    | UNSIGNED LONG INT
+    { $$ = 'unsigned long int'; }
+    | LONG
+    { $$ = 'long'; }
+    | LONG LONG
+    { $$ = 'long long'; }
+    | LONG LONG INT
+    { $$ = 'long long int'; }
+    | UNSIGNED
+    { $$ = 'unsigned'; }
+    | IDF
+    {
+        const tipoDefinido = obterValorDefinicao($1);
+        if (tipoDefinido !== undefined) {
+            $$ = tipoDefinido; // Por exemplo: 'unsigned long'
+        } else {
+            erros.push(`Tipo '${$1}' não foi definido como typedef`);
+            $$ = $1;
+        }
+    }
     ;
+    
 
 struct_init_list
     : struct_init_item
@@ -1053,6 +1100,15 @@ expressao_atribuicao
             stringValue: $1.stringValue
         };
     }
+    | IDF DOT IDF '=' expressao_aritmetica
+    {
+        verificaVariavel($1);
+        $$ = {
+            node: new Node('MEMBER_ASSIGN', new Node($1), new Node($3), $5.node),
+            stringValue: criaTemp()
+        };
+        criaTAC($$.stringValue, $1 + '.' + $3, $5.stringValue, '=');
+    }
     ;
 
 malloc_exp
@@ -1361,6 +1417,17 @@ fator
             node: new Node('CAST_MALLOC', new Node($2 + '*'), $5.node)
         };
         criaTAC($$.stringValue, $5.stringValue, $2 + '*', 'CAST');
+    }
+    | IDF DOT IDF
+    {  
+        verificaVariavel($1);
+        $$ = {
+            type: 'MEMBER_ACCESS',
+            value: $1 + '.' + $3,
+            stringValue: criaTemp(),
+            node: new Node('MEMBER_ACCESS', new Node($1), new Node($3))
+        };
+        criaTAC($$.stringValue, $1, $3, 'DOT');
     }
     ;
 

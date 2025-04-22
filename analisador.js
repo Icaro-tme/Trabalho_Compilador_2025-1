@@ -1,11 +1,11 @@
 const fs = require('fs');
-const parser = require('./compilador.js');
+const parser = require('./compiler.js');
 
 try {
   console.log("Iniciando análise...");
   
   // Obtém o nome do arquivo a partir dos argumentos da linha de comando ou usa o padrão
-  const fileName = process.argv[2] || 'entradas/entrada_05.txt';
+  const fileName = process.argv[2] || './entrada_04.txt';
   
   // Lê o arquivo de entrada
   const input = fs.readFileSync(fileName, 'utf8');
